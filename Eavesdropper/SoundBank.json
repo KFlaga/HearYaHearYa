@@ -1,0 +1,10 @@
+{
+  "voice_commands": [
+    {
+      "name": "test_sound",
+      "train_sounds_dir": "input/test_sound",
+      "number_of_files" : 23
+    }
+  ]
+}
+
