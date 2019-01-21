@@ -1,4 +1,6 @@
-﻿#include "Json_2.hpp"
+﻿#include "Json.hpp"
+#include "AquilaTest.hpp"
+#include "Sounds.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -29,21 +31,39 @@ std::string readFile(std::string fileName)
 	}
 	else
 	{
-		// Couldn't open file
 		throw std::runtime_error("Couldn't open file");
 	}
 }
 
+struct Command
+{
+	std::string name;
+	std::string samplesDir;
+};
 
 int main()
 {
+	using namespace eave;
+
 	std::string content = readFile("SoundBank.json");
 	std::cout << content << "\n";
-	eave::JsonElement* jsonPtr = eave::parseJson(content);
 
-	eave::JsonElement& json = *jsonPtr;
+	try
+	{
+		JsonDocument json(content);
 
-	std::cout << "PARSED\n";
-	std::cout << json.str() << "\n";
-	std::cout << json["x"].get<eave::JsonInteger>().value << "\n";
+		SoundBank bank(json);
+
+		std::cout << bank.allGroups.size() << "\n";
+
+		auto& wavFile = bank.loadSound(0, 0);
+
+		std::cout << wavFile.getSamplesCount() << "\n";
+	}
+	catch (const std::runtime_error& e)
+	{
+		std::cout << "Failed to parse SoundBank.json. Reason: " << e.what() << "\n";
+	}
+
+	//testLoadWav();
 }

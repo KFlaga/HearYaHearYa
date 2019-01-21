@@ -2,6 +2,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <cctype>
 
 
 namespace eave
@@ -13,11 +14,15 @@ namespace eave
 
 		bool hasNext()
 		{
-			return pos < int(input.size()) - 1;
+			return pos < int(input.size());
 		}
 
 		char next()
 		{
+			if (!hasNext())
+			{
+				throw std::runtime_error("End of input");
+			}
 			return pos++;
 		}
 
@@ -31,26 +36,42 @@ namespace eave
 			pos = -1;
 		}
 
+		int getPosition()
+		{
+			return pos;
+		}
+
 		template<typename Func>
 		std::string readWhile(Func condition)
 		{
 			// Reads next characters while given condition is true
 			std::string result;
-			while (condition(get()))
+			while (condition(get())) // todo: find start and end position and use substr
 			{
 				result.push_back(get());
 
-				if (! hasNext())
+				if (!hasNext())
 				{
-					throw std::runtime_error("Unexpected end od input");
+					break;
 				}
 				next();
 			}
 			return result;
 		}
 
+		void skipSpace()
+		{
+			while (std::isspace(get()))
+			{
+				if (hasNext())
+					next();
+				else
+					break;
+			}
+		}
+
 	private:
 		int pos = 0;
-		const std::string& input;
+		const std::string& input; // todo: string_view or consider input iterator (needs template)
 	};
 }

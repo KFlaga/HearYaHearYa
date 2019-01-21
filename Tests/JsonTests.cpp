@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
-#include "Json_2.hpp"
+#include "Json.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -12,9 +12,24 @@ namespace Tests
 	TEST_CLASS(JsonTests)
 	{
 	public:
+		template<typename Func>
+		void expectThrow(Func f)
+		{
+			try
+			{
+				f();
+			}
+			catch (...)
+			{
+				return;
+			}
+			Assert::Fail(L"Throw expected");
+		}
+
 		TEST_METHOD(ParseJsonInteger_123)
 		{
-			Input input("123");
+			std::string text = "123";
+			Input input(text);
 
 			eave::JsonInteger* value = eave::parseInteger(input);
 
@@ -23,52 +38,44 @@ namespace Tests
 
 		TEST_METHOD(ParseJsonInteger_2times)
 		{
-			Input input("1234 2345");
+			std::string text = "1234 2345";
+			Input input(text);
 
 			eave::JsonInteger* value = eave::parseInteger(input);
-
 			Assert::AreEqual(1234, value->value);
 
 			input.next();
 
+			value = eave::parseInteger(input);
 			Assert::AreEqual(2345, value->value);
 		}
 
 		TEST_METHOD(ParseJsonInteger_empty)
 		{
-			Input input("");
+			std::string text = "";
+			Input input(text);
 			
-			bool thrown = false;
-			try
+			expectThrow([&]()
 			{
 				eave::JsonInteger* value = eave::parseInteger(input);
-			}
-			catch (...)
-			{
-				thrown = true;
-			}
-			Assert::IsTrue(thrown);
+			});
 		}
 
 		TEST_METHOD(ParseJsonInteger_nonDigit)
 		{
-			Input input("aaa");
+			std::string text = "aaa";
+			Input input(text);
 
-			bool thrown = false;
-			try
+			expectThrow([&]()
 			{
 				eave::JsonInteger* value = eave::parseInteger(input);
-			}
-			catch (...)
-			{
-				thrown = true;
-			}
-			Assert::IsTrue(thrown);
+			});
 		}
 
 		TEST_METHOD(ParseJsonString_123)
 		{
-			Input input("\"123\"");
+			std::string text = "\"123\"";
+			Input input(text);
 
 			eave::JsonString* value = eave::parseString(input);
 
@@ -78,7 +85,8 @@ namespace Tests
 
 		TEST_METHOD(ParseJsonString_empty)
 		{
-			Input input("\"\"");
+			std::string text = "\"\"";
+			Input input(text);
 
 			eave::JsonString* value = eave::parseString(input);
 
@@ -88,53 +96,62 @@ namespace Tests
 
 		TEST_METHOD(ParseJsonString_noEntryQuote)
 		{
-			Input input("123\"");
+			std::string text = "123\"";
+			Input input(text);
 
-			bool thrown = false;
-			try
+			expectThrow([&]()
 			{
 				eave::JsonString* value = eave::parseString(input);
-			}
-			catch (...)
-			{
-				thrown = true;
-			}
-			Assert::IsTrue(thrown);
+			});
 		}
 
 		TEST_METHOD(ParseJsonString_noTerminalQuote)
 		{
-			Input input("\"123");
-
-			bool thrown = false;
-			try
+			std::string text = "\"123";
+			Input input(text);
+			
+			expectThrow([&]()
 			{
 				eave::JsonString* value = eave::parseString(input);
-			}
-			catch (...)
-			{
-				thrown = true;
-			}
-			Assert::IsTrue(thrown);
+			});
 		}
 
 		TEST_METHOD(ParseJsonMap_empty)
 		{
-			Input input("{ }");
+			std::string text = "{ }";
+			Input input(text);
 
 			eave::JsonMap* value = eave::parseMap(input);
 
+			Assert::IsTrue(0 == value->size());
 		}
 
 		TEST_METHOD(ParseJsonMap_oneElement)
 		{
-			Input input("{ \"x\" : 123 }");
+			std::string text = "{ \"x\" : 123 }";
+			Input input(text);
 
 			eave::JsonMap* value = eave::parseMap(input);
 
-			Assert::IsTrue(1 == value->value.size());
-			Assert::IsTrue(value->value.find("x") != value->value.end());
-			Assert::IsTrue(value->value["x"]->get<JsonInteger>().value == 123);
+			Assert::IsTrue(1 == value->size());
+			Assert::IsTrue(value->contains("x"));
+			Assert::IsTrue((*value)["x"].asInteger() == 123);
+		}
+
+		TEST_METHOD(ParseJsonMap_twoElements)
+		{
+			std::string text = "{ \"x\" : 123, \"y\" : \"abc\" }";
+			Input input(text);
+
+			eave::JsonMap* value = eave::parseMap(input);
+
+			Assert::IsTrue(2 == value->size());
+
+			Assert::IsTrue(value->contains("x"));
+			Assert::IsTrue((*value)["x"].asInteger() == 123);
+
+			Assert::IsTrue(value->contains("y"));
+			Assert::IsTrue((*value)["y"].asString().value == "abc");
 		}
 	};
 }
