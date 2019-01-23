@@ -34,6 +34,12 @@ namespace eave
 		return static_cast<JsonList&>(*this);
 	}
 
+	JsonDouble& JsonElement::asDouble()
+	{
+		expect(JsonElementType::Double);
+		return static_cast<JsonDouble&>(*this);
+	}
+
 	void JsonElement::expect(JsonElementType x)
 	{
 		if (type_ != x)
@@ -54,11 +60,32 @@ namespace eave
 			{
 				ss << ", ";
 			}
-			ss << x.first << " : " << x.second->str();
+			isFirst = false;
+			ss << '"' << x.first << '"' << " : " << x.second->str();
 		}
 		ss << " }";
 		return ss.str();
 	}
+
+	std::string JsonList::str()
+	{
+		bool isFirst = true;
+
+		std::stringstream ss;
+		ss << "[ ";
+		for (auto& x : value)
+		{
+			if (!isFirst)
+			{
+				ss << ", ";
+			}
+			isFirst = false;
+			ss << x->str();
+		}
+		ss << " ]";
+		return ss.str();
+	}
+
 
 	JsonDocument::JsonDocument(const std::string& json) :
 		input{json}
@@ -96,6 +123,11 @@ namespace eave
 		// Zalozenia wejsciowe: jestesmy przy cyfrze
 		int value = std::stoi(input.readWhile(std::isdigit));
 		return new JsonInteger(value);
+	}
+
+	JsonDouble* parseDouble(Input& input)
+	{
+		throw std::runtime_error("Implement me!");
 	}
 
 	bool isNotQuote(char c)
@@ -196,7 +228,7 @@ namespace eave
 		do
 		{
 			input.skipSpace();
-			result->value.push_back(parseJson(input));
+			result->push_back(parseJson(input));
 			input.skipSpace();
 		} while (maybeComma(input));
 

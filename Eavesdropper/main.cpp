@@ -1,6 +1,9 @@
 ﻿#include "Json.hpp"
 #include "AquilaTest.hpp"
-#include "Sounds.hpp"
+#include "SoundBank.hpp"
+#include "Features.hpp"
+#include "KNN.hpp"
+#include <aquila/aquila.h>
 
 #include <iostream>
 #include <fstream>
@@ -59,6 +62,14 @@ int main()
 		auto& wavFile = bank.loadSound(0, 0);
 
 		std::cout << wavFile.getSamplesCount() << "\n";
+
+		FeatureBank fb(bank);
+
+		std::cout << fb.allGroups.size() << "\n";
+
+		fb.saveToFile("features.json");
+
+		//auto knn = findKnn(1, fb.allGroups[0].features[0], fb.allGroups, findDTWCost);
 	}
 	catch (const std::runtime_error& e)
 	{

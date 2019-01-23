@@ -85,7 +85,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\programming\repos\Eavesdropper\Core;$(IncludePath)</IncludePath>
+    <IncludePath>C:\programming\repos\Eavesdropper\Aquila\include;C:\programming\repos\Eavesdropper\Core;$(IncludePath)</IncludePath>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>

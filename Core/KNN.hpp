@@ -2,20 +2,10 @@
 
 #include "FixedSizeQueue.hpp"
 #include "Algorithms.hpp"
-#include <vector>
-#include <functional>
+#include "Features.hpp"
 
 namespace eave
 {
-	template<typename Feature>
-	using FeatureVector = std::vector<Feature>;
-
-	template<typename Feature>
-	using SampleGroup = std::vector<FeatureVector<Feature>>;
-
-	template<typename Feature>
-	using AllGroups = std::vector<SampleGroup<Feature>>;
-
 	struct KnnResult
 	{
 		int group = 0;
@@ -43,6 +33,13 @@ namespace eave
 				return acc + d * d;
 			});
 		}
+
+		double operator()(const FeatureVector<MFCC>& sample, const FeatureVector<MFCC>& reference)
+		{
+			return accumulate2(sample, reference, 0.0, [this](const MFCC& a, const MFCC& b, double acc) {
+				return acc + (*this)(a, b);
+			});
+		}
 	};
 
 	using KnnQueue = FixedSizeQueue<KnnResult, std::greater<KnnResult>>;
@@ -57,10 +54,10 @@ namespace eave
 		KnnQueue bestK(k);
 		for (int gIdx = 0; gIdx < reference.size(); ++gIdx)
 		{
-			const SampleGroup<Feature>& group = reference[gIdx];
-			for (int sIdx = 0; sIdx < group.size(); ++sIdx)
+			auto& group = reference[gIdx];
+			for (int sIdx = 0; sIdx < group.features.size(); ++sIdx)
 			{
-				const FeatureVector<Feature>& x = group[sIdx];
+				const FeatureVector<Feature>& x = group.features[sIdx];
 				double cost = getCost(sample, x);
 				bestK.push({ gIdx, sIdx, 0, cost });
 			}

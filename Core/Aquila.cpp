@@ -41,7 +41,7 @@ namespace eave
 		Aquila::WaveFile wavFile{ path };
 
 		std::cout << "samples " << wavFile.getSamplesCount() << "\n";
-		std::cout << "length " << wavFile.getAudioLength() << "\n";
+		std::cout << "length " << wavFile.getSampleFrequency() << "\n";
 
 		//Aquila::TextPlot plot("Sound");
 

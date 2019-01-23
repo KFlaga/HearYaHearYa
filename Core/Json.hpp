@@ -12,12 +12,14 @@ namespace eave
 	enum class JsonElementType
 	{
 		Integer,
+		Double,
 		String,
 		Map,
 		List
 	};
 
 	struct JsonInteger;
+	struct JsonDouble;
 	struct JsonString;
 	struct JsonMap;
 	struct JsonList;
@@ -45,6 +47,7 @@ namespace eave
 		JsonString& asString();
 		JsonMap& asMap();
 		JsonList& asList();
+		JsonDouble& asDouble();
 		
 	protected:
 		JsonElement(JsonElementType x) : type_{ x } {}
@@ -61,17 +64,35 @@ namespace eave
 			value { x }
 		{}
 
-		std::string str() override
+		std::string str()
 		{
 			return std::to_string(value);
 		}
 
 		operator int()
 		{
+			// converts JsonInteger to int, so its possible to write:
+			// JsonInteger x(1);
+			// int y = x;
 			return value;
 		}
 
 		int value;
+	};
+
+	struct JsonDouble : JsonElement
+	{
+		JsonDouble(double x) :
+			JsonElement{ JsonElementType::Double },
+			value{ x }
+		{}
+
+		std::string str()
+		{
+			throw std::runtime_error("Implement me!");
+		}
+
+		double value;
 	};
 
 	struct JsonString : JsonElement
@@ -81,9 +102,9 @@ namespace eave
 			value{ x }
 		{}
 
-		std::string str() override
+		std::string str()
 		{
-			return value;
+			return "\"" + value + "\"";
 		}
 
 		int size()
@@ -96,7 +117,7 @@ namespace eave
 			return value;
 		}
 
-		std::string value; // todo: string_view
+		std::string value;
 	};
 
 	struct JsonMap : JsonElement
@@ -113,9 +134,9 @@ namespace eave
 			}
 		}
 
-		std::string str() override;
+		std::string str();
 
-		JsonElement& operator[](const std::string& key) override
+		JsonElement& operator[](const std::string& key)
 		{
 			return *value.at(key);
 		}
@@ -151,7 +172,7 @@ namespace eave
 		}
 
 	private:
-		std::map<std::string, JsonElement*> value; // todo: unique_ptr on JsonElement, string_view on key
+		std::map<std::string, JsonElement*> value;
 	};
 
 	struct JsonList : JsonElement
@@ -160,17 +181,43 @@ namespace eave
 			JsonElement{ JsonElementType::List }
 		{}
 
-		std::string str() override
+		~JsonList()
 		{
-			return ""; // TODO
+			for (auto item : value)
+			{
+				delete item;
+			}
 		}
 
-		JsonElement& operator[](int index) override
+		std::string str();
+
+		JsonElement& operator[](int index)
 		{
 			return *value.at(index);
 		}
 
-		std::vector<JsonElement*> value; // todo: unique_ptr of JsonElement
+		int size()
+		{
+			return int(value.size());
+		}
+
+		auto begin()
+		{
+			return value.begin();
+		}
+
+		auto end()
+		{
+			return value.end();
+		}
+
+		void push_back(JsonElement* element)
+		{
+			value.push_back(element);
+		}
+
+	private:
+		std::vector<JsonElement*> value;
 	};
 
 	struct JsonDocument
@@ -186,6 +233,7 @@ namespace eave
 	};
 
 	JsonInteger* parseInteger(Input& input);
+	JsonDouble* parseDouble(Input& input);
 	JsonString* parseString(Input& input);
 	JsonMap* parseMap(Input& input);
 	JsonList* parseList(Input& input);

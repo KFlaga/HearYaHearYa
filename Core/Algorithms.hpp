@@ -5,8 +5,8 @@
 namespace eave
 {
 	// Iterate over two sequences and applies funcion for each pair of elements with accumulator
-	template<typename T, template<typename...> class Container, typename Func>
-	T accumulate2(const Container<T>& a, const Container<T>& b, T initial, Func f)
+	template<typename T, typename U, template<typename...> class Container, typename Func>
+	T accumulate2(const Container<U>& a, const Container<U>& b, T initial, Func f)
 	{
 		for (std::size_t i = 0; i < a.size(); ++i)
 		{

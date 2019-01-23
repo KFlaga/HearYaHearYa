@@ -12,20 +12,24 @@ namespace Tests
 	TEST_CLASS(KnnTests)
 	{
 	public:
-		using AllGroups_d = AllGroups<double>;
-		using SampleGroup_d = SampleGroup<double>;
-		using FeatureVector_d = FeatureVector<double>;
+		using ListOfTracks = std::vector<FeatureVector<MFCC>>;
 
-		AllGroups_d testGroups = AllGroups_d{
-			SampleGroup_d{
-				{1.0, 2.0, 3.0},
-				{3.0, 2.0, 4.0},
-				{2.0, 3.0, 4.0}
+		AllGroups<MFCC> testGroups = AllGroups<MFCC>{
+			FeatureGroup{
+				"test_1",
+				ListOfTracks{
+					{{1.0, 2.0, 3.0}},
+					{{3.0, 2.0, 4.0}},
+					{{2.0, 3.0, 4.0}}
+				}
 			},
-			SampleGroup_d{
-				{-1.0, 3.0, -3.0},
-				{-3.0, 6.0, -3.0},
-				{-1.0, 3.0, -1.0}
+			FeatureGroup{
+				"test_2",
+				ListOfTracks{
+					{{-1.0, 3.0, -3.0}},
+					{{-3.0, 6.0, -3.0}},
+					{{-1.0, 3.0, -1.0}}
+				}
 			},
 		};
 
@@ -33,7 +37,7 @@ namespace Tests
 		{
 			int group = 0;
 			int sample = 0;
-			FeatureVector_d testSample = testGroups[group][sample];
+			FeatureVector<MFCC> testSample = testGroups[group].features[sample];
 
 			auto result = findKnn(1, testSample, testGroups, CostSquaredDistance{});
 
@@ -45,7 +49,7 @@ namespace Tests
 
 			group = 1;
 			sample = 1;
-			testSample = testGroups[group][sample];
+			testSample = testGroups[group].features[sample];
 
 			result = findKnn(1, testSample, testGroups, CostSquaredDistance{});
 
@@ -58,7 +62,7 @@ namespace Tests
 
 		TEST_METHOD(findKnn_k3)
 		{
-			FeatureVector_d testSample = { 2.0, 3.0, 2.0 };
+			FeatureVector<MFCC> testSample = { { 2.0, 3.0, 2.0 } };
 
 			auto getCost = CostSquaredDistance{};
 			auto result = findKnn(3, testSample, testGroups, getCost);
@@ -73,7 +77,7 @@ namespace Tests
 			Assert::AreEqual(1, result[2].sample);
 			Assert::AreEqual(0, classifyKnn(result));
 
-			testSample = { 0.0, 2.0, 0.0 };
+			testSample = { { 0.0, 2.0, 0.0 } };
 
 			result = findKnn(3, testSample, testGroups, getCost);
 
