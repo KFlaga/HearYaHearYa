@@ -17,13 +17,13 @@ namespace eave
 			return pos < int(input.size());
 		}
 
-		char next()
+		void next()
 		{
 			if (!hasNext())
 			{
 				throw std::runtime_error("End of input");
 			}
-			return pos++;
+			pos++;
 		}
 
 		char get()

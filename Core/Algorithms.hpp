@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <type_traits>
+#include <numeric>
 
 namespace eave
 {
@@ -52,5 +54,91 @@ namespace eave
 				f(*it1, *it2);
 			}
 		}
+	}
+
+	// Transforms each element in sequence in-place
+	template<typename InputOutputIt, typename Func>
+	void transformInPlace(InputOutputIt begin1, InputOutputIt end1, Func f)
+	{
+		for (; begin1 != end1; begin1++)
+		{
+			*begin1 = f(*begin1);
+		}
+	}
+
+	// Transforms each element in sequence in-place
+	template<typename T, template<typename...> class Container, typename Func>
+	void transformInPlace(Container<T>& a, Func f)
+	{
+		transformInPlace(a.begin(), a.end(), f);
+	}
+
+	template<typename InputOutputIt, typename InputIt, typename Func>
+	void transformFirstInPlace(InputOutputIt begin1, InputOutputIt end1, InputIt begin2, Func f)
+	{
+		for (; begin1 != end1; begin1++, begin2++)
+		{
+			*begin1 = f(*begin1, *begin2);
+		}
+	}
+
+	template<typename T, typename U, template<typename...> class Container, typename Func>
+	void transformFirstInPlace(Container<T>& a, const Container<U>& b, Func f)
+	{
+		transformFirstInPlace(a.begin(), a.end(), b.begin(), f);
+	}
+
+	template<typename T>
+	struct divide_by
+	{
+		T operator()(T a) const
+		{
+			return a / d;
+		}
+
+		T operator()(T a, T b) const
+		{
+			return a / b;
+		}
+
+		T d;
+	};
+
+	template<typename InputIt, typename T, typename Func>
+	T accumulateNested(InputIt begin1, InputIt end1, T initial, Func f);
+
+	namespace detail
+	{
+		template<typename>
+		struct IsContainer_t : std::false_type {};
+
+		template<typename T, template <typename...> class Container, typename... Args>
+		struct IsContainer_t<Container<T, Args...>> : std::true_type {};
+
+		using IsContainer = std::true_type;
+		using IsValue = std::false_type;
+
+		template<typename InputIt, typename T, typename Func>
+		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, IsValue)
+		{
+			return std::accumulate(begin1, end1, initial, f);
+		}
+
+		template<typename InputIt, typename T, typename Func>
+		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, IsContainer)
+		{
+			for (; begin1 != end1; begin1++)
+			{
+				initial = accumulateNested(std::begin(*begin1), std::end(*begin1), initial, f);
+			}
+			return initial;
+		}
+	}
+
+	template<typename InputIt, typename T, typename Func>
+	T accumulateNested(InputIt begin1, InputIt end1, T initial, Func f)
+	{
+		using ContainerOrValue = std::remove_const_t<std::remove_reference_t<decltype(*begin1)>>;
+		return detail::accumulateNestedImpl(begin1, end1, initial, f, detail::IsContainer_t<ContainerOrValue>{});
 	}
 }

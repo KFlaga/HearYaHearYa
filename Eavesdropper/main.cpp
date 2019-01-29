@@ -75,6 +75,4 @@ int main()
 	{
 		std::cout << "Failed to parse SoundBank.json. Reason: " << e.what() << "\n";
 	}
-
-	//testLoadWav();
 }

@@ -44,8 +44,8 @@ namespace eave
 				// Split into frames
 				// Aquila requires for frame size to be power of 2
 				double samplesInFrame = frameLengthMs * 0.001 * sound.getSampleFrequency();
-				unsigned int samplesInFrame_pow2 = greaterEqualPowerOf2(samplesInFrame);
-				unsigned int samplesInOverlap = samplesInFrame_pow2 * overlap;
+				unsigned int samplesInFrame_pow2 = (unsigned int)greaterEqualPowerOf2(samplesInFrame);
+				unsigned int samplesInOverlap = (unsigned int)samplesInFrame_pow2 * overlap;
 
 				Aquila::FramesCollection frames{ sound, samplesInFrame_pow2, samplesInOverlap };
 				std::size_t featuresCount = 12; // 12 is standard according to smart guys
@@ -183,7 +183,7 @@ namespace eave
 
 	double findDTWCost(const FeatureVector<MFCC>& from, const FeatureVector<MFCC>& to)
 	{
-		Aquila::Dtw dtw;
+		Aquila::Dtw dtw{ euclideanDistanceSquared };
 		double distance = dtw.getDistance(from, to);
 		return distance;
 	}

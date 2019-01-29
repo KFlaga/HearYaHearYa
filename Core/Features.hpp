@@ -6,6 +6,7 @@
 #include <istream>
 
 #include "SoundBank.hpp"
+#include "Algorithms.hpp"
 
 namespace eave
 {
@@ -41,6 +42,15 @@ namespace eave
 
 	template<typename Feature>
 	using AllGroups = std::vector<FeatureGroup>;
+
+
+	inline double euclideanDistanceSquared(const std::vector<double>&  v1, const std::vector<double>& v2)
+	{
+		return accumulate2(v1, v2, 0.0, [](double a, double b, double acc) {
+			double d = a - b;
+			return acc + d * d;
+		});
+	}
 
 	double findDTWCost(const FeatureVector<MFCC>& a, const FeatureVector<MFCC>& b);
 }

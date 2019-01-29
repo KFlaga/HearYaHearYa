@@ -21,17 +21,21 @@
   <ItemGroup>
     <ClInclude Include="Algorithms.hpp" />
     <ClInclude Include="AquilaTest.hpp" />
-    <ClInclude Include="CompactMultipleAlignment.hpp" />
+    <ClInclude Include="Dba.hpp" />
+    <ClInclude Include="Expect.hpp" />
     <ClInclude Include="Features.hpp" />
     <ClInclude Include="FixedSizeQueue.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Json.hpp" />
     <ClInclude Include="KNN.hpp" />
     <ClInclude Include="Normalization.hpp" />
+    <ClInclude Include="Recognizer.hpp" />
     <ClInclude Include="SoundBank.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Aquila.cpp" />
+    <ClCompile Include="CommandRecognitionAlgorithm.cpp" />
+    <ClCompile Include="Dba.cpp" />
     <ClCompile Include="FeatureBank.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="SoundBank.cpp" />
@@ -97,7 +101,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>C:\programming\repos\aquila\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\programming\repos\Eavesdropper\Aquila\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\programming\repos\aquila\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -110,13 +114,13 @@
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>C:\programming\repos\aquila\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\programming\repos\Eavesdropper\Aquila\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\programming\repos\aquila\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -174,7 +178,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

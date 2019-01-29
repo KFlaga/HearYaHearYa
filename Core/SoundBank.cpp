@@ -29,7 +29,6 @@ namespace eave
 	std::wstring getAbsoultePath(const std::wstring& path)
 	{
 		DWORD  retval = 0;
-		BOOL   success;
 		TCHAR  buffer[MAX_PATH] = TEXT("");
 		TCHAR  buf[MAX_PATH] = TEXT("");
 		LPWSTR* lppPart = { NULL };

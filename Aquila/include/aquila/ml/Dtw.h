@@ -109,7 +109,8 @@ namespace Aquila
         /**
          * Coordinates of the top right corner of the points array.
          */
-        std::size_t m_fromSize, m_toSize;
+		std::size_t m_fromSize = 0;
+		std::size_t m_toSize = 0;
     };
 }
 
