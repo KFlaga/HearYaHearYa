@@ -96,13 +96,22 @@ namespace Tests
 		TEST_METHOD(AccumulateNested)
 		{
 			std::vector<std::vector<double>> a{ { 1.0, 2.0 }, { 3.0, 4.0 } };
+			double result = accumulateNested(std::begin(a), std::end(a), 3.0, [](double x, double acc)
 			{
-				double result = accumulateNested(std::begin(a), std::end(a), 3.0, [](double x, double acc)
-				{
-					return acc + x;
-				});
-				Assert::AreEqual(13.0, result);
-			}
+				return acc + x;
+			});
+			Assert::AreEqual(13.0, result);
+		}
+
+		TEST_METHOD(FindMinCostElement)
+		{
+			std::vector<double> a{ 1.0, 6.0, 4.0, -2.0 };
+
+			auto result = findMinCostElement(std::begin(a), std::end(a), [](double x) { return x; });
+			Assert::AreEqual(-2.0, *result);
+
+			result = findMinCostElement(std::begin(a), std::end(a), [](double x) { return -x; });
+			Assert::AreEqual(6.0, *result);
 		}
 	};
 }

@@ -42,9 +42,6 @@
     <ClInclude Include="SoundBank.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Recognizer.hpp">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="Dba.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -63,9 +60,6 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="FeatureBank.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandRecognitionAlgorithm.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="Dba.cpp">

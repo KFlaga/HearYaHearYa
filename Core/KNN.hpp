@@ -44,6 +44,7 @@ namespace eave
 
 	using KnnQueue = FixedSizeQueue<KnnResult, std::greater<KnnResult>>;
 
+	// Computes KnnQueue for KNN classifier - k best macthes of "sample" in "reference" groups
 	template<typename Feature, typename CostFunction>
 	KnnQueue findKnn(
 		int k,
@@ -66,6 +67,7 @@ namespace eave
 		return bestK;
 	}
 
+	// Finds best matched group according to given KnnQueue
 	inline int classifyKnn(KnnQueue& knn)
 	{
 		forEachWithEach(knn.begin(), knn.end(), IncludeSelf{}, [](auto& a, auto& b) {
@@ -76,6 +78,7 @@ namespace eave
 		return std::max_element(knn.begin(), knn.end(), compareNnInGroup)->group;
 	}
 
+	// Classifes given "sample" object to one of groups in "reference" using K Nearest Neighbours classifier
 	template<typename Feature, typename CostFunction>
 	int classifyKnn(
 		int k,
@@ -85,5 +88,18 @@ namespace eave
 	{
 		KnnQueue knn = findKnn(k, sample, reference, getCost);
 		return classifyKnn(knn);
+	}
+
+	// Classifes given "sample" object to one of groups in "reference" by finding nearest match
+	template<typename Feature, typename CostFunction>
+	int classifyNearest(
+		const FeatureVector<Feature>& sample,
+		const std::vector<FeatureVector<Feature>>& referenceAverages,
+		CostFunction getCost)
+	{
+		auto minCostElement = findMinCostElement(std::begin(referenceAverages), std::end(referenceAverages),
+			[&](auto& average) { return getCost(average, sample); }
+		);
+		return std::distance(std::begin(referenceAverages), minCostElement);
 	}
 }

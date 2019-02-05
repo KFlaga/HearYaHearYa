@@ -127,63 +127,44 @@ namespace eave
 			assoc.reserve(sequences.size());
 		}
 
+		auto dtw = Aquila::Dtw{ euclideanDistanceSquared };
 		for (int seqIdx = 0; seqIdx < sequences.size(); ++seqIdx)
 		{
-			auto dtw = Aquila::Dtw{ euclideanDistanceSquared };
 			dtw.getDistance(sequences[seqIdx], averageSequence);
 			addAssociations(associations, dtw, seqIdx, method);
 		}
-		transformFirstInPlace(averageSequence, associations,
-			[&](auto&, auto& assocForElement) { return barycenter(assocForElement, sequences); });
+		auto assignBarycenter = [&](auto&, auto& assocForElement) { return barycenter(assocForElement, sequences); };
+		transformFirstInPlace(averageSequence, associations, assignBarycenter);
 	}
 
 	FeatureVector<MFCC> pickInitialSequence(const std::vector<FeatureVector<MFCC>>& sequences)
 	{
-		return sequences[0];
+		int idx = Aquila::random(0, (int)sequences.size() - 1);
+		return sequences[idx];
 	}
 
-	struct EndCondition
+	void DbaEndCondition::update(const std::vector<FeatureVector<MFCC>>& sequences, const FeatureVector<MFCC>& averageSequence)
 	{
-		EndCondition(int maxIterations_, double maxInertia_) :
-			maxIterations{ maxIterations_ }, maxInertia{ maxInertia_ }
-		{}
-
-		bool isMet()
+		inertia = 0.0;
+		double sumOfElements = 0.0;
+		for (auto& s : sequences)
 		{
-			return iteration < maxIterations && inertia > maxInertia;
+			inertia += findDTWCost(s, averageSequence);
+			sumOfElements = accumulateNested(s.begin(), s.end(), sumOfElements, [](double x, double acc) { return acc + x * x; });
 		}
 
-		void update(const std::vector<FeatureVector<MFCC>>& sequences, const FeatureVector<MFCC>& averageSequence)
-		{
-			inertia = 0.0;
-			double sumOfElements = 0.0;
-			for (auto& s : sequences)
-			{
-				inertia += findDTWCost(s, averageSequence);
-				sumOfElements = accumulateNested(s.begin(), s.end(), sumOfElements, [](double x, double acc) { return acc + x * x; });
-			}
-
-			inertia = std::sqrt(inertia / sumOfElements);
-			++iteration;
-		}
-
-	private:
-		int maxIterations;
-		double maxInertia;
-		int iteration = 0;
-		double inertia = 1.0;
-	};
+		inertia = std::sqrt(inertia / sumOfElements);
+		++iteration;
+	}
 
 	FeatureVector<MFCC> computeAverageSequenceWithDBA(
 		const std::vector<FeatureVector<MFCC>>& sequences,
 		DbaAssociationsMethod method,
-		double maxRelativeIntertia,
-		int maxIterations)
+		DbaEndCondition endCondition)
 	{
 		EAVE_EXPECT(sequences.size() > 0);
 
 		auto averageSequence = pickInitialSequence(sequences);
-		auto endCondition = EndCondition{ maxIterations, maxRelativeIntertia };
 
 		while (!endCondition.isMet())
 		{
@@ -192,5 +173,51 @@ namespace eave
 		}
 
 		return averageSequence;
+	}
+
+	double computeFitness(const std::vector<DtwAssociation>& associations, double p)
+	{
+		EAVE_EXPECT(associations.size() > 0);
+
+		auto addCost = [](double acc, DtwAssociation a) { return acc + a.cost; };
+		double totalCost = std::accumulate(std::begin(associations), std::end(associations), 0.0, addCost);
+		double div = std::pow((double)associations.size(), p);
+		return -totalCost / div; // Minus sign as bigger cost = lower fitness
+	}
+
+	FeatureVector<MFCC> removeWorstElementInAverageSequence(
+		const FeatureVector<MFCC>& average,
+		const std::vector<std::vector<DtwAssociation>>& associations,
+		double p)
+	{
+		EAVE_EXPECT(associations.size() == average.size());
+
+		auto getCost = [p](auto& assocs) { return computeFitness(assocs, p); };
+		auto element = findMinCostElement(std::begin(associations), std::end(associations), getCost);
+		std::size_t pos = std::distance(std::begin(associations), element);
+
+		FeatureVector<MFCC> result(average);
+		result.erase(std::begin(result) + pos);
+		return result;
+	}
+
+	FeatureVector<MFCC> removeElementsWithoutAssociations(
+		const FeatureVector<MFCC>& average,
+		const std::vector<std::vector<DtwAssociation>>& associations)
+	{
+		EAVE_EXPECT(associations.size() == average.size());
+
+		FeatureVector<MFCC> result{};
+		result.reserve(average.size());
+
+		for (std::size_t i = 0; i < average.size(); ++i)
+		{
+			if (associations[i].size() > 0)
+			{
+				result.push_back(average[i]);
+			}
+		}
+
+		return result;
 	}
 }

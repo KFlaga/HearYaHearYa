@@ -29,12 +29,10 @@
     <ClInclude Include="Json.hpp" />
     <ClInclude Include="KNN.hpp" />
     <ClInclude Include="Normalization.hpp" />
-    <ClInclude Include="Recognizer.hpp" />
     <ClInclude Include="SoundBank.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Aquila.cpp" />
-    <ClCompile Include="CommandRecognitionAlgorithm.cpp" />
     <ClCompile Include="Dba.cpp" />
     <ClCompile Include="FeatureBank.cpp" />
     <ClCompile Include="Json.cpp" />

@@ -210,5 +210,79 @@ namespace Tests
 				Assert::IsTrue(initial == expected);
 			}
 		}
+
+		TEST_METHOD(test_removeWorstElementInAverageSequence)
+		{
+			std::vector<std::vector<DtwAssociation>> associations
+			{
+				std::vector<DtwAssociation>
+				{
+					DtwAssociation{0, 0, 1.0},
+					DtwAssociation{0, 1, 3.0},
+					DtwAssociation{0, 2, 2.0} // fitness = -0.67
+				},
+				std::vector<DtwAssociation>
+				{
+					DtwAssociation{1, 0, 4.0},
+					DtwAssociation{1, 1, 3.0},
+					DtwAssociation{1, 2, 0.0} // fitness = -0.78
+				},
+				std::vector<DtwAssociation>
+				{
+					DtwAssociation{2, 0, 1.0},
+					DtwAssociation{2, 1, 2.0}, // fitness = -0.75
+				},
+			};
+
+			FeatureVector<MFCC> average{ MFCC{1.0}, MFCC{2.0}, MFCC{0.0} };
+			FeatureVector<MFCC> expected{ MFCC{1.0},  MFCC{0.0} };
+
+			FeatureVector<MFCC> result = removeWorstElementInAverageSequence(average, associations, 2.0);
+			Assert::IsTrue(result == expected);
+
+			associations[0].erase(associations[0].begin());
+			expected = { MFCC{2.0},  MFCC{0.0} };
+
+			result = removeWorstElementInAverageSequence(average, associations, 1.0);
+			Assert::IsTrue(result == expected);
+		}
+
+		TEST_METHOD(test_removeElementsWithoutAssociations)
+		{
+			std::vector<std::vector<DtwAssociation>> associations
+			{
+				std::vector<DtwAssociation>
+				{
+					DtwAssociation{0, 0, 1.0},
+					DtwAssociation{1, 1, 3.0},
+					DtwAssociation{0, 1, 2.0}
+				},
+				std::vector<DtwAssociation>{},
+				std::vector<DtwAssociation>
+				{
+					DtwAssociation{1, 0, 3.0}
+				},
+				std::vector<DtwAssociation>{}
+			};
+
+			FeatureVector<MFCC> average{ MFCC{1.0}, MFCC{2.0}, MFCC{0.0}, MFCC{-2.0} };
+			FeatureVector<MFCC> expected{ MFCC{1.0},  MFCC{0.0}};
+
+			FeatureVector<MFCC> result = removeElementsWithoutAssociations(average, associations);
+
+			Assert::IsTrue(result == expected);
+		}
+
+		TEST_METHOD(test_computeFitness)
+		{
+			std::vector<DtwAssociation> associations{
+				DtwAssociation{0, 0, 1.0},
+				DtwAssociation{1, 1, 3.0},
+				DtwAssociation{0, 1, 2.0},
+			};
+
+			Assert::AreEqual(-6.0 / 3.0, computeFitness(associations, 1.0));
+			Assert::AreEqual(-6.0 / 9.0, computeFitness(associations, 2.0));
+		}
 	};
 }

@@ -73,6 +73,7 @@ namespace eave
 		transformInPlace(a.begin(), a.end(), f);
 	}
 
+	// Transforms each element in first sequence in-place
 	template<typename InputOutputIt, typename InputIt, typename Func>
 	void transformFirstInPlace(InputOutputIt begin1, InputOutputIt end1, InputIt begin2, Func f)
 	{
@@ -82,6 +83,7 @@ namespace eave
 		}
 	}
 
+	// Transforms each element in first sequence in-place
 	template<typename T, typename U, template<typename...> class Container, typename Func>
 	void transformFirstInPlace(Container<T>& a, const Container<U>& b, Func f)
 	{
@@ -135,10 +137,32 @@ namespace eave
 		}
 	}
 
+	// Iterates over each element in nested sequence and applies funcion for each pair of elements with accumulator
 	template<typename InputIt, typename T, typename Func>
 	T accumulateNested(InputIt begin1, InputIt end1, T initial, Func f)
 	{
 		using ContainerOrValue = std::remove_const_t<std::remove_reference_t<decltype(*begin1)>>;
 		return detail::accumulateNestedImpl(begin1, end1, initial, f, detail::IsContainer_t<ContainerOrValue>{});
+	}
+
+	// Finds element with smallest cost computed by given cost function
+	template<typename InputIt, typename CostFunc>
+	InputIt findMinCostElement(InputIt begin1, InputIt end1, CostFunc getCost)
+	{
+		if (begin1 == end1) { return begin1; }
+
+		auto minElement = begin1;
+		double minCost = getCost(*begin1);
+
+		for (begin1++; begin1 != end1; begin1++)
+		{
+			double cost = getCost(*begin1);
+			if (cost < minCost)
+			{
+				minElement = begin1;
+				minCost = cost;
+			}
+		}
+		return minElement;
 	}
 }

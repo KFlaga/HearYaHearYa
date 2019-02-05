@@ -4,6 +4,7 @@
 #include <string>
 #include <aquila/aquila.h>
 #include <Features.hpp>
+#include <Dba.hpp>
 
 
 namespace eave
@@ -31,7 +32,7 @@ namespace eave
 		auto time_1 = timeIt(f);
 
 		// do warm-up for 10% of minTime
-		int warmUpIterations = std::ceil(minTime * 0.1 / time_1);
+		int warmUpIterations = (int)std::ceil(minTime * 0.1 / time_1);
 
 		for (int i = 0; i < warmUpIterations; ++i)
 		{
@@ -101,13 +102,69 @@ namespace eave
 	}
 
 	template<typename Func>
-	void executeBenchmarks(Func f, const std::string& name, std::chrono::seconds minTime = std::chrono::seconds{ 1 }, TimeUnit unit = TimeUnit::Micro)
+	void executeBenchmark(Func f, const std::string& name, std::chrono::seconds minTime = std::chrono::seconds{ 1 }, TimeUnit unit = TimeUnit::Micro)
 	{
 		auto result = benchmark(f, minTime);
 		std::cout << name << " : " << stringifyTime(result.averageTime, unit) << " (i " << result.iterations << ")\n";
 	}
 
-	void benchmarkAquilaDtw(int lengthFirst, int lengthSecond, int lengthFeatures, const std::string& name);
+	auto generateRandomFeatures(int count)
+	{
+		return [count]() {
+			Aquila::WhiteNoiseGenerator x{ 100.0 /* parameter is dummy */ };
+			x.setAmplitude(1.0).generate(count);
+			return std::vector<double>(std::begin(x), std::end(x));
+		};
+	}
+
+	struct BenchmarkAquilaDtwData
+	{
+		Aquila::DtwDataType first;
+		Aquila::DtwDataType second;
+	};
+
+	BenchmarkAquilaDtwData prepareBenchmarkAquilaDtwData(int lengthFirst, int lengthSecond, int lengthFeatures)
+	{
+		BenchmarkAquilaDtwData result;
+
+		std::generate_n(std::back_inserter(result.first), lengthFirst, generateRandomFeatures(lengthFeatures));
+		std::generate_n(std::back_inserter(result.second), lengthSecond, generateRandomFeatures(lengthFeatures));
+
+		return result;
+	}
+
+	void benchmarkAquilaDtw(int lengthFirst, int lengthSecond, int lengthFeatures, const std::string& name)
+	{
+		auto data = prepareBenchmarkAquilaDtwData(lengthFirst, lengthSecond, lengthFeatures);
+		executeBenchmark([&]() { Aquila::Dtw{ euclideanDistanceSquared }.getDistance(data.first, data.second); }, name);
+	}
+
+	struct BenchmarkDbaData
+	{
+		std::vector<FeatureVector<MFCC>> sequences;
+		FeatureVector<MFCC> initialAverage;
+	};
+
+	BenchmarkDbaData prepareBenchmarkDbaData(int sequencesCount, int framesInSample, int lengthFeatures)
+	{
+		BenchmarkDbaData result;
+		result.sequences.resize(sequencesCount);
+
+		for (auto& s : result.sequences)
+		{
+			std::generate_n(std::back_inserter(s), framesInSample, generateRandomFeatures(lengthFeatures));
+		}
+
+		result.initialAverage = result.sequences[0];
+
+		return result;
+	}
+
+	void benchmarkDba(int sequencesCount, int framesInSample, int lengthFeatures, const std::string& name)
+	{
+		auto data = prepareBenchmarkDbaData(sequencesCount, framesInSample, lengthFeatures);
+		executeBenchmark([&]() { computeAverageSequenceWithDBA(data.sequences, data.initialAverage); }, name);
+	}
 
 	void executeBenchmarks()
 	{
@@ -127,38 +184,23 @@ namespace eave
 		benchmarkAquilaDtw(80, 80, 40, "Aquila::Dtw(rand, N=80, M=80, F=40)");
 		benchmarkAquilaDtw(80, 80, 80, "Aquila::Dtw(rand, N=80, M=80, F=80)");
 
-	}
+		std::cout << "\n";
+		benchmarkDba(5, 10, 10, "DBA(rand, S=5, N=10, F=10)");
+		benchmarkDba(5, 20, 10, "DBA(rand, S=5, N=20, F=10)");
+		benchmarkDba(5, 40, 10, "DBA(rand, S=5, N=40, F=10)");
+		benchmarkDba(5, 80, 10, "DBA(rand, S=5, N=80, F=10)");
 
-	struct BenchmarkAquilaDtwData
-	{
-		Aquila::DtwDataType first;
-		Aquila::DtwDataType second;
-	};
+		std::cout << "\n";
+		benchmarkDba(10, 10, 10, "DBA(rand, S=10, N=10, F=10)");
+		benchmarkDba(10, 20, 10, "DBA(rand, S=10, N=20, F=10)");
+		benchmarkDba(10, 40, 10, "DBA(rand, S=10, N=40, F=10)");
+		benchmarkDba(10, 80, 10, "DBA(rand, S=10, N=80, F=10)");
 
-	BenchmarkAquilaDtwData prepareBenchmarkAquilaDtwData(int lengthFirst, int lengthSecond, int lengthFeatures);
-
-	void benchmarkAquilaDtw(int lengthFirst, int lengthSecond, int lengthFeatures, const std::string& name)
-	{
-		BenchmarkAquilaDtwData data = prepareBenchmarkAquilaDtwData(lengthFirst, lengthSecond, lengthFeatures);
-		executeBenchmarks([&]() { Aquila::Dtw{ euclideanDistanceSquared }.getDistance(data.first, data.second); }, name);
-	}
-
-	BenchmarkAquilaDtwData prepareBenchmarkAquilaDtwData(int lengthFirst, int lengthSecond, int lengthFeatures)
-	{
-		BenchmarkAquilaDtwData result;
-		result.first.resize(lengthFirst);
-		result.second.resize(lengthSecond);
-
-		auto generateRandomFeatures = [&]() {
-			Aquila::WhiteNoiseGenerator x{ 100.0 /* parameter is dummy */ };
-			x.generate(lengthFeatures);
-			return std::vector<double>(std::begin(x), std::end(x));
-		};
-
-		std::generate_n(std::begin(result.first), lengthFirst, generateRandomFeatures);
-		std::generate_n(std::begin(result.second), lengthSecond, generateRandomFeatures);
-
-		return result;
+		std::cout << "\n";
+		benchmarkDba(20, 10, 10, "DBA(rand, S=20, N=10, F=10)");
+		benchmarkDba(20, 20, 10, "DBA(rand, S=20, N=20, F=10)");
+		benchmarkDba(20, 40, 10, "DBA(rand, S=20, N=40, F=10)");
+		benchmarkDba(20, 80, 10, "DBA(rand, S=20, N=80, F=10)");
 	}
 }
 
