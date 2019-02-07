@@ -43,7 +43,6 @@ namespace eave
 	template<typename Feature>
 	using AllGroups = std::vector<FeatureGroup>;
 
-
 	inline double euclideanDistanceSquared(const std::vector<double>&  v1, const std::vector<double>& v2)
 	{
 		return accumulate2(v1, v2, 0.0, [](double a, double b, double acc) {

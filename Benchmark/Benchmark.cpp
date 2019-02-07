@@ -5,6 +5,7 @@
 #include <aquila/aquila.h>
 #include <Features.hpp>
 #include <Dba.hpp>
+#include <DeepIterator.hpp>
 
 
 namespace eave
@@ -166,11 +167,54 @@ namespace eave
 		executeBenchmark([&]() { computeAverageSequenceWithDBA(data.sequences, data.initialAverage); }, name);
 	}
 
+
+	template<std::size_t nesting>
+	auto prepareNestedAlgorithmData(std::size_t length)
+	{
+		using value_type = std::remove_reference_t<decltype(prepareNestedAlgorithmData<nesting - 1>(length))>;
+		std::vector<value_type> data{};
+		data.reserve(length);
+		std::generate_n(std::back_inserter(data), length, [=]() { return prepareNestedAlgorithmData<nesting - 1>(length); });
+		return data;
+	}
+
+	template<>
+	auto prepareNestedAlgorithmData<0>(std::size_t length)
+	{
+		//std::vector<double> data(length, 1.0);
+		//return data;
+		return generateRandomFeatures(length)();
+	}
+
+	void doEasyWork(double& x)
+	{
+		x = x + 1.0;
+	}
+
+	void doHardWork(double& x)
+	{
+		x = std::sqrt(std::abs(x)) + std::sqrt(x * x);
+	}
+
+	template<std::size_t nesting, typename Func>
+	void benchmarkDeepIterator(int sequenceLength, Func work, const std::string& name)
+	{
+		auto data = prepareNestedAlgorithmData<nesting>(sequenceLength);
+		executeBenchmark([&]() { std::for_each(deepBegin(data), deepEnd(data), work); }, name, std::chrono::seconds{ 1 }, TimeUnit::Nano);
+	}
+
+	template<std::size_t nesting, typename Func>
+	void benchmarkAccumulateNested(int sequenceLength, Func work, const std::string& name)
+	{
+		auto data = prepareNestedAlgorithmData<nesting>(sequenceLength);
+		executeBenchmark([&]() { forEachNested(data.begin(), data.end(), work); }, name, std::chrono::seconds{ 1 }, TimeUnit::Nano);
+	}
+
 	void executeBenchmarks()
 	{
 		std::cout << "Executing benchmarks:\n";
 
-		std::cout << "\n";
+		/*std::cout << "\n";
 		benchmarkAquilaDtw(10, 10, 10, "Aquila::Dtw(rand, N=10, M=10, F=10)");
 		benchmarkAquilaDtw(20, 20, 10, "Aquila::Dtw(rand, N=20, M=20, F=10)");
 		benchmarkAquilaDtw(40, 40, 10, "Aquila::Dtw(rand, N=40, M=40, F=10)");
@@ -200,7 +244,25 @@ namespace eave
 		benchmarkDba(20, 10, 10, "DBA(rand, S=20, N=10, F=10)");
 		benchmarkDba(20, 20, 10, "DBA(rand, S=20, N=20, F=10)");
 		benchmarkDba(20, 40, 10, "DBA(rand, S=20, N=40, F=10)");
-		benchmarkDba(20, 80, 10, "DBA(rand, S=20, N=80, F=10)");
+		benchmarkDba(20, 80, 10, "DBA(rand, S=20, N=80, F=10)");*/
+
+		std::cout << "\n";
+		benchmarkDeepIterator<0>(10, doEasyWork, "DeepIterator Nest = 0, Len = 10, Easy");
+		benchmarkAccumulateNested<0>(10, doEasyWork, "AccumulateNested Nest = 0, Len = 10, Easy");
+		benchmarkDeepIterator<0>(10, doHardWork, "DeepIterator Nest = 0, Len = 10, Hard");
+		benchmarkAccumulateNested<0>(10, doHardWork, "AccumulateNested Nest = 0, Len = 10, Hard");
+
+		std::cout << "\n";
+		benchmarkDeepIterator<1>(10, doEasyWork, "DeepIterator Nest = 1, Len = 10, Easy");
+		benchmarkAccumulateNested<1>(10, doEasyWork, "AccumulateNested Nest = 1, Len = 10, Easy");
+		benchmarkDeepIterator<1>(10, doHardWork, "DeepIterator Nest = 1, Len = 10, Hard");
+		benchmarkAccumulateNested<1>(10, doHardWork, "AccumulateNested Nest = 1, Len = 10, Hard");
+
+		std::cout << "\n";
+		benchmarkDeepIterator<2>(10, doEasyWork, "DeepIterator Nest = 2, Len = 10, Easy");
+		benchmarkAccumulateNested<2>(10, doEasyWork, "AccumulateNested Nest = 2, Len = 10, Easy");
+		benchmarkDeepIterator<2>(10, doHardWork, "DeepIterator Nest = 2, Len = 10, Hard");
+		benchmarkAccumulateNested<2>(10, doHardWork, "AccumulateNested Nest = 2, Len = 10, Hard");
 	}
 }
 

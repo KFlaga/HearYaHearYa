@@ -22,14 +22,17 @@
     <ClInclude Include="Algorithms.hpp" />
     <ClInclude Include="AquilaTest.hpp" />
     <ClInclude Include="Dba.hpp" />
+    <ClInclude Include="DeepIterator.hpp" />
     <ClInclude Include="Expect.hpp" />
     <ClInclude Include="Features.hpp" />
     <ClInclude Include="FixedSizeQueue.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Json.hpp" />
+    <ClInclude Include="KMeans.hpp" />
     <ClInclude Include="KNN.hpp" />
     <ClInclude Include="Normalization.hpp" />
     <ClInclude Include="SoundBank.hpp" />
+    <ClInclude Include="TypeTraits.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Aquila.cpp" />

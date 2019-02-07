@@ -1,6 +1,7 @@
 #include "Dba.hpp"
 #include "Algorithms.hpp"
 #include "Expect.hpp"
+#include "DeepIterator.hpp"
 #include <aquila/aquila.h>
 #include <numeric>
 
@@ -88,7 +89,7 @@ namespace eave
 
 			transformFirstInPlace(result, features, std::plus<double>{});
 		}
-		transformInPlace(result, divide_by<double>{ double(associations.size()) });
+		transformInPlace(result, divide_by(double(associations.size())));
 		return result;
 	}
 
@@ -150,7 +151,7 @@ namespace eave
 		for (auto& s : sequences)
 		{
 			inertia += findDTWCost(s, averageSequence);
-			sumOfElements = accumulateNested(s.begin(), s.end(), sumOfElements, [](double x, double acc) { return acc + x * x; });
+			sumOfElements = std::accumulate(deepBegin(s), deepEnd(s), sumOfElements, [](double x, double acc) { return acc + x * x; });
 		}
 
 		inertia = std::sqrt(inertia / sumOfElements);

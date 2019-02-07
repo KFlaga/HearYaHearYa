@@ -15,7 +15,7 @@ namespace eave
 	};
 
 #ifndef EAVE_DISABLE_EXPECT_CHECKS
-	void Expect(bool cond, const char* msg = "Expectation not met")
+	inline void Expect(bool cond, const char* msg = "Expectation not met")
 	{
 		if (!cond)
 		{
@@ -23,7 +23,7 @@ namespace eave
 		}
 	}
 
-	void Expect(bool cond, std::string(*msg)())
+	inline void Expect(bool cond, std::string(*msg)())
 	{
 		if (!cond)
 		{
@@ -31,11 +31,11 @@ namespace eave
 		}
 	}
 #else
-	void Expect(bool cond, const char* msg = "")
+	inline void Expect(bool cond, const char* msg = "")
 	{
 	}
 
-	void Expect(bool cond, std::string(*msg)())
+	inline void Expect(bool cond, std::string(*msg)())
 	{
 	}
 #endif

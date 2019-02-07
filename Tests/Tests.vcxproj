@@ -164,8 +164,10 @@
   <ItemGroup>
     <ClCompile Include="AlgorithmsTests.cpp" />
     <ClCompile Include="DbaTests.cpp" />
+    <ClCompile Include="DeepIteratorTests.cpp" />
     <ClCompile Include="FeatureBankTests.cpp" />
     <ClCompile Include="FixedSizedQueueTests.cpp" />
+    <ClCompile Include="KMeansTests.cpp" />
     <ClCompile Include="KnnTests.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

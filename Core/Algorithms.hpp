@@ -1,11 +1,46 @@
 #pragma once
 
+#include "TypeTraits.hpp"
 #include <algorithm>
-#include <type_traits>
 #include <numeric>
 
 namespace eave
 {
+	template<typename InputIt, typename Func>
+	void forEachNested(InputIt begin1, InputIt end1, Func f);
+
+	namespace detail
+	{
+		template<typename InputIt, typename Func>
+		void forEachNestedImpl(InputIt begin1, InputIt end1, Func f, traits::IsValue)
+		{
+			std::for_each(begin1, end1, f);
+		}
+
+		template<typename InputIt, typename Func>
+		void forEachNestedImpl(InputIt begin1, InputIt end1, Func f, traits::IsContainer)
+		{
+			std::for_each(begin1, end1, [&](auto& container) { forEachNested(container.begin(), container.end(), f); });
+		}
+	}
+
+	// Iterates over each element in nested sequence and applies funcion for each element
+	template<typename InputIt, typename Func>
+	void forEachNested(InputIt begin1, InputIt end1, Func f)
+	{
+		detail::forEachNestedImpl(begin1, end1, f, traits::is_iterable(*begin1));
+	}
+
+	// Iterates over each element in nested two nested sequences and applies funcion for each pair of elements
+	template<typename InputIt, typename InputIt2, typename Func>
+	void forEach2(InputIt begin1, InputIt end1, InputIt2 begin2, Func f)
+	{
+		for (; begin1 != end1; ++begin1, ++begin2)
+		{
+			f(*begin1, *begin2);
+		}
+	}
+
 	// Iterate over two sequences and applies funcion for each pair of elements with accumulator
 	template<typename T, typename U, template<typename...> class Container, typename Func>
 	T accumulate2(const Container<U>& a, const Container<U>& b, T initial, Func f)
@@ -91,7 +126,7 @@ namespace eave
 	}
 
 	template<typename T>
-	struct divide_by
+	struct divide_by_t
 	{
 		T operator()(T a) const
 		{
@@ -106,28 +141,25 @@ namespace eave
 		T d;
 	};
 
+	template<typename T>
+	auto divide_by(T d)
+	{
+		return divide_by_t<T>{d};
+	}
+
 	template<typename InputIt, typename T, typename Func>
 	T accumulateNested(InputIt begin1, InputIt end1, T initial, Func f);
 
 	namespace detail
 	{
-		template<typename>
-		struct IsContainer_t : std::false_type {};
-
-		template<typename T, template <typename...> class Container, typename... Args>
-		struct IsContainer_t<Container<T, Args...>> : std::true_type {};
-
-		using IsContainer = std::true_type;
-		using IsValue = std::false_type;
-
 		template<typename InputIt, typename T, typename Func>
-		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, IsValue)
+		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, traits::IsValue)
 		{
 			return std::accumulate(begin1, end1, initial, f);
 		}
 
 		template<typename InputIt, typename T, typename Func>
-		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, IsContainer)
+		T accumulateNestedImpl(InputIt begin1, InputIt end1, T initial, Func f, traits::IsContainer)
 		{
 			for (; begin1 != end1; begin1++)
 			{
@@ -141,9 +173,10 @@ namespace eave
 	template<typename InputIt, typename T, typename Func>
 	T accumulateNested(InputIt begin1, InputIt end1, T initial, Func f)
 	{
-		using ContainerOrValue = std::remove_const_t<std::remove_reference_t<decltype(*begin1)>>;
-		return detail::accumulateNestedImpl(begin1, end1, initial, f, detail::IsContainer_t<ContainerOrValue>{});
+		return detail::accumulateNestedImpl(begin1, end1, initial, f, traits::is_iterable(*begin1));
 	}
+
+	// TODO: make nested iterator and remove accumulateNested
 
 	// Finds element with smallest cost computed by given cost function
 	template<typename InputIt, typename CostFunc>
